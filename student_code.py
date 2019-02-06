@@ -142,6 +142,34 @@ class KnowledgeBase(object):
         """
         ####################################################
         # Student code goes here
+        if isinstance(fact_or_rule, Fact):
+            if fact_or_rule not in self.facts:
+                return "Fact is not in the KB"
+        elif isinstance(fact_or_rule, Rule):
+            if fact_or_rule not in self.rules:
+                return "Rule is not in the KB"
+        else:
+            return False
+        out = ""
+        level = 0
+        stack = [[fact_or_rule, 0]]
+        while stack:
+            elem = stack.pop()
+            if not elem[0]:
+                out += (elem[1]+1)*"  " + "SUPPORTED BY\n"
+                continue
+            elif isinstance(elem[0], Fact):
+                kb_fr = self._get_fact(elem[0])
+                out += elem[1]*"  " + "fact: " + str(kb_fr.statement) + (" ASSERTED" if kb_fr.asserted else "") + "\n"
+            elif isinstance(elem[0], Rule):
+                kb_fr = self._get_rule(elem[0])
+                lhlist = [str(lh) for lh in kb_fr.lhs]
+                out += elem[1]*"  " + "rule: (" + ", ".join(lhlist) + ") -> " + str(kb_fr.rhs) + (" ASSERTED" if kb_fr.asserted else "") + "\n"
+            for supp in reversed(kb_fr.supported_by):
+                stack.append([supp[1], elem[1]+2])
+                stack.append([supp[0], elem[1]+2])
+                stack.append([[], elem[1]])
+        return out
 
 
 class InferenceEngine(object):
